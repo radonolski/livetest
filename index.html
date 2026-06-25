@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> T SCOREBOARD AND STATS</title>
+    <title> Test SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -297,15 +297,29 @@
 
     let lastScore1 = null, lastScore2 = null, isAnimating = false, statsTimer = null, currentHomeId = null, currentAwayId = null;
 
-    // --- TWITCH CHAT INTEGRATION (Dynamisch geladen) ---
+    // --- VERBESSERTER TWITCH CHAT ---
     function initTwitchChat() {
         const script = document.createElement('script');
         script.src = "https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/lib/tmi.min.js";
         script.onload = () => {
-            const client = new tmi.Client({ channels: ['radonolski'] });
-            client.connect().catch(console.error);
+            console.log("TMI.js geladen, verbinde...");
+            const client = new tmi.Client({
+                connection: { reconnect: true, secure: true },
+                channels: ['radonolski'] // HIER DEINEN NAMEN EINTRAGEN
+            });
+    
+            client.connect().then(() => {
+                console.log("Erfolgreich mit Twitch verbunden!");
+            }).catch((err) => {
+                console.error("Verbindungsfehler:", err);
+            });
+    
             client.on('message', (channel, tags, message, self) => {
-                if (message.toLowerCase() === '!stats') toggleStatsPanel();
+                console.log("Nachricht empfangen:", message); // Zum Testen, ob überhaupt etwas ankommt
+                if (message.toLowerCase().trim() === '!stats') {
+                    console.log("Befehl !stats erkannt!");
+                    toggleStatsPanel();
+                }
             });
         };
         document.head.appendChild(script);
