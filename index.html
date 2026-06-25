@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WM OBS Overlay (1)</title>
+    <title>TEST WM OBS Overlay</title>
     <style>
         body {
             margin: 0;
@@ -99,7 +99,6 @@
             white-space: nowrap;
             position: relative; 
             overflow: hidden;   
-            cursor: pointer; /* Zeigt an, dass man hier klicken kann zum Testen */
         }
 
         /* Das Tor-Overlay, das aus der Uhr nach links ausfährt */
@@ -183,7 +182,7 @@
 
     <div class="scoreboard">
         <div class="scoreboard-side left">
-            <div class="time-box" id="match-time" onclick="triggerGoalAnimation()">
+            <div class="time-box" id="match-time">
                 --:--
                 <div class="goal-overlay" id="goal-banner">TOOOR!</div>
             </div>
@@ -215,7 +214,7 @@
 
         // Die Kern-Animationsfunktion
         function triggerGoalAnimation() {
-            if (isAnimating) return; // Verhindert Spam-Klicks während der Animation
+            if (isAnimating) return; 
             isAnimating = true;
 
             const banner = document.getElementById('goal-banner');
@@ -224,17 +223,11 @@
                 
                 setTimeout(() => {
                     banner.classList.remove('active');
-                    setTimeout(() => { isAnimating = false; }, 600); // Reset nach dem Einfahren
+                    setTimeout(() => { isAnimating = false; }, 600); 
                 }, 5000);
             }
         }
 
-        // NEU: Tastatur-Trigger (Taste 'T' drücken)
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 't' || event.key === 'T') {
-                triggerGoalAnimation();
-            }
-        });
 
         async function fetchLiveScore() {
             try {
@@ -298,7 +291,7 @@
                     } else if (status.type.name === "STATUS_HALFTIME" || status.type.shortDetail === "HT") {
                         timeText = "HT";
                     } else if (status.type.name === "STATUS_FINAL" || status.type.shortDetail === "FT") {
-                        timeBox.firstChild.textContent = "FT ";
+                        timeText = "FT"; // REPARIERT: Nutzt jetzt die Variable wie alle anderen Status-Typen
                     } else {
                         timeText = status.displayClock || "00:00";
                     }
