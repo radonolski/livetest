@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WM OBS Overlay (Gradient Fix)</title>
+    <title>WM OBS Overlay (Pixel Perfect Alignment)</title>
     <style>
         body {
             margin: 0;
@@ -26,26 +26,45 @@
             position: relative;
         }
 
-        /* JETZT KORRIGIERT: Farbverlauf bleibt unter den Teams & Scores voll sichtbar */
-        .scoreboard::after {
+        /* NEU: Struktur für die beiden Herzhälften des Overlays */
+        .scoreboard-side {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            position: relative;
+        }
+
+        /* LINKE LINIE: Endet IMMER exakt an der Logo-Kante (right: 0) */
+        .scoreboard-side.left::after {
             content: '';
             position: absolute;
             bottom: -3px;
-            left: 5%;
-            width: 90%;
+            left: 30px; /* Läuft nicht ganz bis zur Außenkante */
+            right: 0;   /* BOMBENFEST an der Logo-Kante verankert */
             height: 3px;
             background: linear-gradient(90deg, 
-                rgba(235, 65, 65, 0) 0%,      /* Ganz links: Sanftes Ausfaden */
-                rgba(235, 65, 65, 1) 15%,     /* Vollfarbe unter der Flagge */
-                rgba(235, 65, 65, 1) 46%,     /* Bleibt vollfarbig bis DIREKT vor das Logo (unter dem U) */
-                rgba(0, 0, 0, 0) 48%,         /* Haarscharfer Cut-Out fürs Logo */
-                rgba(0, 0, 0, 0) 52%,         /* Haarscharfer Cut-Out fürs Logo */
-                rgba(115, 245, 165, 1) 54%,   /* Sofort wieder Vollfarbe Grün nach dem Logo */
-                rgba(240, 240, 120, 1) 75%,   /* Schöner Übergang zu Gelb */
-                rgba(185, 125, 245, 1) 90%,   /* Übergang zu Lila */
-                rgba(185, 125, 245, 0) 100%   /* Ganz rechts: Sanftes Ausfaden */
+                rgba(235, 65, 65, 0) 0%, 
+                rgba(235, 65, 65, 1) 60%, 
+                rgba(235, 65, 65, 1) 100%
             );
-            border-radius: 5px;
+            border-radius: 5px 0 0 5px;
+        }
+
+        /* RECHTE LINIE: Startet IMMER exakt an der Logo-Kante (left: 0) */
+        .scoreboard-side.right::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;    /* BOMBENFEST an der Logo-Kante verankert */
+            right: 30px; /* Läuft nicht ganz bis zur Außenkante */
+            height: 3px;
+            background: linear-gradient(90deg, 
+                rgba(115, 245, 165, 1) 0%, 
+                rgba(240, 240, 120, 1) 40%, 
+                rgba(185, 125, 245, 1) 75%, 
+                rgba(185, 125, 245, 0) 100%
+            );
+            border-radius: 0 5px 5px 0;
         }
 
         .time-box {
@@ -124,20 +143,23 @@
 <body>
 
     <div class="scoreboard">
-        <div class="time-box" id="match-time">--:--</div>
-        
-        <div class="team-container">
-            <img class="flag" id="team1-flag" src="https://via.placeholder.com/40x26/333/FFF?text=?" alt="Team 1">
-            <div class="team-name" id="team1-name">TBA</div>
+        <div class="scoreboard-side left">
+            <div class="time-box" id="match-time">--:--</div>
+            <div class="team-container">
+                <img class="flag" id="team1-flag" src="https://via.placeholder.com/40x26/333/FFF?text=?" alt="Team 1">
+                <div class="team-name" id="team1-name">TBA</div>
+            </div>
+            <div class="score-box" id="team1-score">0</div>
         </div>
 
-        <div class="score-box" id="team1-score">0</div>
         <div class="center-logo"><span>🏆</span>FIFA</div>
-        <div class="score-box" id="team2-score">0</div>
 
-        <div class="team-container">
-            <div class="team-name" id="team2-name">TBA</div>
-            <img class="flag" id="team2-flag" src="https://via.placeholder.com/40x26/333/FFF?text=?" alt="Team 2">
+        <div class="scoreboard-side right">
+            <div class="score-box" id="team2-score">0</div>
+            <div class="team-container">
+                <div class="team-name" id="team2-name">TBA</div>
+                <img class="flag" id="team2-flag" src="https://via.placeholder.com/40x26/333/FFF?text=?" alt="Team 2">
+            </div>
         </div>
     </div>
 
