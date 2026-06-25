@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WM OBS Overlay</title>
+    <title>WM OBS Overlay (Goal Test Edition)</title>
     <style>
         body {
             margin: 0;
@@ -33,30 +33,26 @@
             position: relative;
         }
 
-        /* RECHTE SEITE: Padding definiert den exakten Abstand der rechten Flagge zum Rand */
         .scoreboard-side.right {
-            padding-right: 20px; /* Identisch mit dem linken Flaggen-Abstand zur Uhr! */
+            padding-right: 20px; 
         }
 
-        /* DYNAMISCHER TEAM-CONTAINER (Ohne feste Breite!) */
         .team-container {
             display: flex;
             align-items: center;
-            gap: 12px; /* Absolut gleicher Abstand zwischen Flagge und Kürzel auf beiden Seiten */
+            gap: 12px; 
         }
 
-        /* Symmetrie-Justierung für die linke Seite */
         .scoreboard-side.left .team-container {
-            margin-left: 20px;  /* Abstand von der weißen Uhr zur linken Flagge */
-            margin-right: 20px; /* Abstand vom Kürzel (CUW) zur linken Score-Box */
+            margin-left: 20px;  
+            margin-right: 20px; 
         }
 
-        /* Symmetrie-Justierung für die rechte Seite */
         .scoreboard-side.right .team-container {
-            margin-left: 20px;  /* Abstand von der rechten Score-Box zum Kürzel (CIV) */
+            margin-left: 20px;  
         }
 
-        /* UNTERE LINIE LINKS (Verschwindet nahtlos in der Logo-Mitte) */
+        /* LINKE LINIE HINTER LOGO */
         .scoreboard-side.left::after {
             content: '';
             position: absolute;
@@ -73,7 +69,7 @@
             z-index: 1;
         }
 
-        /* UNTERE LINIE RECHTS (Verschwindet nahtlos in der Logo-Mitte) */
+        /* RECHTE LINIE HINTER LOGO */
         .scoreboard-side.right::after {
             content: '';
             position: absolute;
@@ -101,6 +97,34 @@
             font-size: 22px; 
             font-weight: bold;
             white-space: nowrap;
+            position: relative; 
+            overflow: hidden;   
+            cursor: pointer; /* Zeigt an, dass man hier klicken kann zum Testen */
+        }
+
+        /* Das Tor-Overlay, das aus der Uhr nach links ausfährt */
+        .goal-overlay {
+            position: absolute;
+            top: 0;
+            right: 0; 
+            height: 100%;
+            width: 0; 
+            background-color: #90f3c5; 
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: inherit;
+            letter-spacing: 1px;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+            z-index: 5;
+        }
+
+        .goal-overlay.active {
+            width: 100%;
         }
 
         .team-name {
@@ -159,7 +183,10 @@
 
     <div class="scoreboard">
         <div class="scoreboard-side left">
-            <div class="time-box" id="match-time">--:--</div>
+            <div class="time-box" id="match-time" onclick="triggerGoalAnimation()">
+                --:--
+                <div class="goal-overlay" id="goal-banner">TOOOR!</div>
+            </div>
             <div class="team-container">
                 <img class="flag" id="team1-flag" src="https://via.placeholder.com/40x26/333/FFF?text=?" alt="Team 1">
                 <div class="team-name" id="team1-name">TBA</div>
@@ -181,6 +208,33 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const targetTeam = urlParams.get('team') ? urlParams.get('team').toUpperCase() : null;
+
+        let lastScore1 = null;
+        let lastScore2 = null;
+        let isAnimating = false;
+
+        // Die Kern-Animationsfunktion
+        function triggerGoalAnimation() {
+            if (isAnimating) return; // Verhindert Spam-Klicks während der Animation
+            isAnimating = true;
+
+            const banner = document.getElementById('goal-banner');
+            if (banner) {
+                banner.classList.add('active');
+                
+                setTimeout(() => {
+                    banner.classList.remove('active');
+                    setTimeout(() => { isAnimating = false; }, 600); // Reset nach dem Einfahren
+                }, 5000);
+            }
+        }
+
+        // NEU: Tastatur-Trigger (Taste 'T' drücken)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 't' || event.key === 'T') {
+                triggerGoalAnimation();
+            }
+        });
 
         async function fetchLiveScore() {
             try {
@@ -206,7 +260,21 @@
                     const homeTeam = match.competitions[0].competitors[0];
                     const awayTeam = match.competitions[0].competitors[1];
 
-                    // Zeit-Logik
+                    const currentScore1 = parseInt(homeTeam.score) || 0;
+                    const currentScore2 = parseInt(awayTeam.score) || 0;
+
+                    // Tor-Erkennung über API
+                    if (lastScore1 !== null && lastScore2 !== null) {
+                        if (currentScore1 > lastScore1 || currentScore2 > lastScore2) {
+                            triggerGoalAnimation();
+                        }
+                    }
+
+                    lastScore1 = currentScore1;
+                    lastScore2 = currentScore2;
+
+                    // Zeit-Text ermitteln
+                    let timeText = "--:--";
                     if (status.type.state === "pre") {
                         const kickoff = new Date(match.date);
                         const now = new Date();
@@ -218,28 +286,33 @@
                             
                             if (diffHours >= 24) {
                                 const options = { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
-                                document.getElementById('match-time').innerText = kickoff.toLocaleString('de-DE', options);
+                                timeText = kickoff.toLocaleString('de-DE', options);
                             } else if (diffHours > 0) {
-                                document.getElementById('match-time').innerText = `-${diffHours}h ${diffMins}m`;
+                                timeText = `-${diffHours}h ${diffMins}m`;
                             } else {
-                                document.getElementById('match-time').innerText = `-${diffMins} Min`;
+                                timeText = `-${diffMins} Min`;
                             }
                         } else {
-                            document.getElementById('match-time').innerText = "Anpfiff";
+                            timeText = "Anpfiff";
                         }
                     } else if (status.type.name === "STATUS_HALFTIME" || status.type.shortDetail === "HT") {
-                        document.getElementById('match-time').innerText = "Halbzeit";
+                        timeText = "Halbzeit";
                     } else {
-                        document.getElementById('match-time').innerText = status.displayClock || "00:00";
+                        timeText = status.displayClock || "00:00";
                     }
                     
+                    // DOM-Update ohne das Overlay zu löschen
+                    const timeBox = document.getElementById('match-time');
+                    // Wir tauschen nur den Textknoten aus, um das goal-banner Element intakt zu lassen
+                    timeBox.firstChild.textContent = timeText + " ";
+
                     // Teams & Scores befüllen
                     document.getElementById('team1-name').innerText = homeTeam.team.abbreviation;
-                    document.getElementById('team1-score').innerText = homeTeam.score;
+                    document.getElementById('team1-score').innerText = currentScore1;
                     document.getElementById('team1-flag').src = homeTeam.team.logo;
 
                     document.getElementById('team2-name').innerText = awayTeam.team.abbreviation;
-                    document.getElementById('team2-score').innerText = awayTeam.score;
+                    document.getElementById('team2-score').innerText = currentScore2;
                     document.getElementById('team2-flag').src = awayTeam.team.logo;
                 }
             } catch (error) {
