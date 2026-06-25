@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WM OBS Overlay (Smart Timer)</title>
+    <title>WM OBS Overlay (Gradient Fix)</title>
     <style>
         body {
             margin: 0;
@@ -26,6 +26,7 @@
             position: relative;
         }
 
+        /* JETZT KORRIGIERT: Farbverlauf bleibt unter den Teams & Scores voll sichtbar */
         .scoreboard::after {
             content: '';
             position: absolute;
@@ -33,7 +34,17 @@
             left: 5%;
             width: 90%;
             height: 3px;
-            background: linear-gradient(90deg, rgba(255,100,100,1) 0%, rgba(255,200,200,1) 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,0) 55%, rgba(150,255,150,1) 70%, rgba(200,150,255,1) 100%);
+            background: linear-gradient(90deg, 
+                rgba(235, 65, 65, 0) 0%,      /* Ganz links: Sanftes Ausfaden */
+                rgba(235, 65, 65, 1) 15%,     /* Vollfarbe unter der Flagge */
+                rgba(235, 65, 65, 1) 46%,     /* Bleibt vollfarbig bis DIREKT vor das Logo (unter dem U) */
+                rgba(0, 0, 0, 0) 48%,         /* Haarscharfer Cut-Out fürs Logo */
+                rgba(0, 0, 0, 0) 52%,         /* Haarscharfer Cut-Out fürs Logo */
+                rgba(115, 245, 165, 1) 54%,   /* Sofort wieder Vollfarbe Grün nach dem Logo */
+                rgba(240, 240, 120, 1) 75%,   /* Schöner Übergang zu Gelb */
+                rgba(185, 125, 245, 1) 90%,   /* Übergang zu Lila */
+                rgba(185, 125, 245, 0) 100%   /* Ganz rechts: Sanftes Ausfaden */
+            );
             border-radius: 5px;
         }
 
@@ -45,7 +56,7 @@
             align-items: center;
             padding: 0 25px;
             border-radius: 25px 10px 10px 25px;
-            font-size: 22px; /* Leicht verkleinert, damit auch Datumsangaben perfekt reinpassen */
+            font-size: 22px; 
             font-weight: bold;
             white-space: nowrap;
         }
@@ -158,9 +169,8 @@
                     const homeTeam = match.competitions[0].competitors[0];
                     const awayTeam = match.competitions[0].competitors[1];
 
-                    // INTELLIGENTE ZEITBERECHNUNG
+                    // Zeit-Logik
                     if (status.type.state === "pre") {
-                        // Spiel hat noch nicht begonnen
                         const kickoff = new Date(match.date);
                         const now = new Date();
                         const diffMs = kickoff - now;
@@ -170,21 +180,19 @@
                             const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                             
                             if (diffHours >= 24) {
-                                // Mehr als 24 Stunden hin -> Zeige kurzes Datum (z.B. 26.06. 18:00)
                                 const options = { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
                                 document.getElementById('match-time').innerText = kickoff.toLocaleString('de-DE', options);
                             } else if (diffHours > 0) {
-                                // Noch ein paar Stunden hin -> Countdown in Stunden
                                 document.getElementById('match-time').innerText = `-${diffHours}h ${diffMins}m`;
                             } else {
-                                // Weniger als eine Stunde hin -> Countdown in Minuten
                                 document.getElementById('match-time').innerText = `-${diffMins} Min`;
                             }
                         } else {
                             document.getElementById('match-time').innerText = "Anpfiff";
                         }
+                    } else if (status.type.name === "STATUS_HALFTIME" || status.type.shortDetail === "HT") {
+                        document.getElementById('match-time').innerText = "Halbzeit";
                     } else {
-                        // Spiel läuft oder ist vorbei -> Zeige die normale ESPN-Uhrzeit (z.B. 45' oder Halbzeit)
                         document.getElementById('match-time').innerText = status.displayClock || "00:00";
                     }
                     
@@ -203,7 +211,7 @@
         }
 
         fetchLiveScore();
-        setInterval(fetchLiveScore, 30000);
+        setInterval(fetchLiveScore, 10000);
     </script>
 </body>
 </html>
