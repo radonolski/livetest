@@ -304,21 +304,28 @@
         let currentHomeId = null;
         let currentAwayId = null;
 
-        // --- TWITCH CHAT CONNECTION ---
-        const client = new tmi.Client({
-            channels: ["radonolski"] // <-- HIER deinen Channel eintragen
-        });
-        
-        client.on('message', (channel, tags, message, self) => {
-            if (self) return;
+        // --- TWITCH CHAT CONNECTION (SAFE VERSION) ---
+        let client = null;
 
-            const msg = message.trim().toLowerCase();
+        if (typeof tmi !== "undefined") {
+            client = new tmi.Client({
+                channels: ["radonolski"]
+            });
 
-            // COMMAND: !stats
-            if (msg === "!stats") {
-                toggleStatsPanel();
-            }
-        });
+            client.connect().catch(console.error);
+
+            client.on('message', (channel, tags, message, self) => {
+                if (self) return;
+
+                const msg = message.trim().toLowerCase();
+
+                if (msg === "!stats") {
+                    toggleStatsPanel();
+                }
+            });
+        } else {
+            console.warn("tmi.js nicht geladen – Twitch Chat deaktiviert");
+        }
 
         client.connect().catch(console.error);
 
