@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tmi.js/1.8.5/tmi.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> 1TEST WM OBS Overlay mit Erweiterten Stats</title>
-    <script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/lib/tmi.min.js"></script>
+    <title>COMMAND SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -293,27 +293,6 @@
     </div>
 
     <script>
-
-        const client = new tmi.Client({
-            channels: ['radonolski'] // <-- HIER DEINEN NAMEN EINTRAGEN (z.B. ['mein_channel'])
-        });
-
-        client.connect();
-
-        client.on('message', (channel, tags, message, self) => {
-            // Nur auf den Befehl "!stats" reagieren
-            if (message.toLowerCase() === '!stats') {
-                
-                // Sicherheit: Nur Broadcaster oder Moderatoren dürfen die Stats triggern
-                const isMod = tags.mod || (tags.badges && tags.badges.broadcaster);
-                
-                if (isMod) {
-                    toggleStatsPanel();
-                    console.log("Stats via Chat durch " + tags['display-name'] + " aktiviert.");
-                }
-            }
-        });
-
         const urlParams = new URLSearchParams(window.location.search);
         const targetTeam = urlParams.get('team') ? urlParams.get('team').toUpperCase() : null;
 
@@ -324,6 +303,24 @@
         let statsTimer = null;
         let currentHomeId = null;
         let currentAwayId = null;
+
+        // --- TWITCH CHAT CONNECTION ---
+        const client = new tmi.Client({
+            channels: ["radonolski"] // <-- HIER deinen Channel eintragen
+        });
+        
+        client.on('message', (channel, tags, message, self) => {
+            if (self) return;
+
+            const msg = message.trim().toLowerCase();
+
+            // COMMAND: !stats
+            if (msg === "!stats") {
+                toggleStatsPanel();
+            }
+        });
+
+        client.connect().catch(console.error);
 
         // --- TOR ANIMATION ---
         function triggerGoalAnimation() {
