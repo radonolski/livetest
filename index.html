@@ -296,7 +296,9 @@
                             timeText = "Anpfiff";
                         }
                     } else if (status.type.name === "STATUS_HALFTIME" || status.type.shortDetail === "HT") {
-                        timeText = "Halbzeit";
+                        timeText = "HT";
+                    } else if (status.type.name === "STATUS_FINAL" || status.type.shortDetail === "FT") {
+                        timeBox.firstChild.textContent = "FT ";
                     } else {
                         timeText = status.displayClock || "00:00";
                     }
