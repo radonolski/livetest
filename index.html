@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIGA SCOREBOARD AND STATS</title>
+    <title>TEST LIGA SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -181,7 +181,7 @@
         }
 
         .stats-panel.active {
-            max-height: 350px;
+            max-height: 500px;
             opacity: 1;
             transform: translateY(0);
             padding: 15px 0;
@@ -211,6 +211,14 @@
         
         .yellow-card { color: #f1c40f; }
         .red-card { color: #e74c3c; }
+        .no-stats {
+            text-align: center;
+            color: #90f3c5;
+            font-size: 14px;
+            padding: 5px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -241,47 +249,7 @@
         </div>
 
         <div class="stats-panel" id="stats-panel">
-            <div class="stat-row">
-                <span class="stat-value" id="stat-poss-1">0%</span>
-                <span class="stat-label">Ballbesitz</span>
-                <span class="stat-value" id="stat-poss-2">0%</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-shots-1">0</span>
-                <span class="stat-label">Schüsse</span>
-                <span class="stat-value" id="stat-shots-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-sog-1">0</span>
-                <span class="stat-label">Schüsse aufs Tor</span>
-                <span class="stat-value" id="stat-sog-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-corners-1">0</span>
-                <span class="stat-label">Eckbälle</span>
-                <span class="stat-value" id="stat-corners-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-freekicks-1">0</span>
-                <span class="stat-label">Freistöße</span>
-                <span class="stat-value" id="stat-freekicks-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-fouls-1">0</span>
-                <span class="stat-label">Fouls</span>
-                <span class="stat-value" id="stat-fouls-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value yellow-card" id="stat-yellow-1">0</span>
-                <span class="stat-label">Gelbe Karten</span>
-                <span class="stat-value yellow-card" id="stat-yellow-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value red-card" id="stat-red-1">0</span>
-                <span class="stat-label">Rote Karten</span>
-                <span class="stat-value red-card" id="stat-red-2">0</span>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -482,41 +450,77 @@
             }
         }
 
-        // --- STATISTIKEN AUSLESEN ---
         async function fetchMatchStats(matchId) {
             try {
-                const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/npl/summary?event=${matchId}`);
+                const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event=${matchId}`);
                 const data = await res.json();
                 
-                if (data.boxscore && data.boxscore.teams) {
+                const statsPanel = document.getElementById('stats-panel');
+                statsPanel.innerHTML = ''; // Panel vor jedem Neuladen leeren
+        
+                // Prüfen, ob Boxscore-Daten für beide Teams existieren
+                if (data.boxscore && data.boxscore.teams && data.boxscore.teams.length >= 2) {
                     const homeStatsData = data.boxscore.teams.find(t => t.team.id === currentHomeId);
                     const awayStatsData = data.boxscore.teams.find(t => t.team.id === currentAwayId);
-
-                    const getStat = (teamData, statName) => {
-                        if (!teamData || !teamData.statistics) return '0';
-                        const stat = teamData.statistics.find(s => s.name === statName);
-                        return stat ? stat.displayValue : '0';
-                    };
-
-                    document.getElementById('stat-poss-1').innerText = getStat(homeStatsData, 'possessionPct') + '%';
-                    document.getElementById('stat-poss-2').innerText = getStat(awayStatsData, 'possessionPct') + '%';
-                    document.getElementById('stat-shots-1').innerText = getStat(homeStatsData, 'totalShots');
-                    document.getElementById('stat-shots-2').innerText = getStat(awayStatsData, 'totalShots');
-                    document.getElementById('stat-sog-1').innerText = getStat(homeStatsData, 'shotsOnTarget');
-                    document.getElementById('stat-sog-2').innerText = getStat(awayStatsData, 'shotsOnTarget');
-                    document.getElementById('stat-corners-1').innerText = getStat(homeStatsData, 'wonCorners');
-                    document.getElementById('stat-corners-2').innerText = getStat(awayStatsData, 'wonCorners');
-                    document.getElementById('stat-freekicks-1').innerText = getStat(homeStatsData, 'freeKicks');
-                    document.getElementById('stat-freekicks-2').innerText = getStat(awayStatsData, 'freeKicks');
-                    document.getElementById('stat-fouls-1').innerText = getStat(homeStatsData, 'foulsCommitted');
-                    document.getElementById('stat-fouls-2').innerText = getStat(awayStatsData, 'foulsCommitted');
-                    document.getElementById('stat-yellow-1').innerText = getStat(homeStatsData, 'yellowCards');
-                    document.getElementById('stat-yellow-2').innerText = getStat(awayStatsData, 'yellowCards');
-                    document.getElementById('stat-red-1').innerText = getStat(homeStatsData, 'redCards');
-                    document.getElementById('stat-red-2').innerText = getStat(awayStatsData, 'redCards');
+        
+                    // Wenn keine Statistik-Arrays existieren oder sie leer sind -> Abbruch
+                    if (!homeStatsData || !awayStatsData || !homeStatsData.statistics || homeStatsData.statistics.length === 0) {
+                        statsPanel.innerHTML = '<div class="no-stats">Keine Statistik verfügbar</div>';
+                        return;
+                    }
+        
+                    // Unsere "Wunschliste" an Statistiken und wie sie heißen sollen
+                    const desiredStats = [
+                        { id: 'possessionPct', label: 'Ballbesitz', suffix: '%' },
+                        { id: 'totalShots', label: 'Schüsse', suffix: '' },
+                        { id: 'shotsOnTarget', label: 'Schüsse aufs Tor', suffix: '' },
+                        { id: 'wonCorners', label: 'Eckbälle', suffix: '' },
+                        { id: 'freeKicks', label: 'Freistöße', suffix: '' },
+                        { id: 'foulsCommitted', label: 'Fouls', suffix: '' },
+                        { id: 'yellowCards', label: 'Gelbe Karten', suffix: '', class: 'yellow-card' },
+                        { id: 'redCards', label: 'Rote Karten', suffix: '', class: 'red-card' }
+                    ];
+        
+                    let statsFound = false;
+        
+                    // Wir gehen unsere Wunschliste durch
+                    desiredStats.forEach(statDef => {
+                        const homeStatObj = homeStatsData.statistics.find(s => s.name === statDef.id);
+                        const awayStatObj = awayStatsData.statistics.find(s => s.name === statDef.id);
+        
+                        // Nur wenn die API diese spezielle Statistik auch liefert, bauen wir eine Zeile dafür
+                        if (homeStatObj && awayStatObj) {
+                            statsFound = true;
+                            
+                            let val1 = homeStatObj.displayValue;
+                            let val2 = awayStatObj.displayValue;
+        
+                            const row = document.createElement('div');
+                            row.className = 'stat-row';
+                            
+                            const colorClass = statDef.class ? ` ${statDef.class}` : '';
+        
+                            row.innerHTML = `
+                                <span class="stat-value${colorClass}">${val1}${statDef.suffix}</span>
+                                <span class="stat-label">${statDef.label}</span>
+                                <span class="stat-value${colorClass}">${val2}${statDef.suffix}</span>
+                            `;
+                            statsPanel.appendChild(row);
+                        }
+                    });
+        
+                    // Falls die API zwar ein Array geliefert hat, aber keine unserer Wunsch-Stats drin war
+                    if (!statsFound) {
+                        statsPanel.innerHTML = '<div class="no-stats">Keine Statistik verfügbar</div>';
+                    }
+        
+                } else {
+                    // Keine Boxscore-Daten in der API vorhanden
+                    statsPanel.innerHTML = '<div class="no-stats">Keine Statistik verfügbar</div>';
                 }
             } catch (error) {
                 console.error("Fehler beim Abrufen der Statistik-Daten:", error);
+                document.getElementById('stats-panel').innerHTML = '<div class="no-stats">Datenfehler</div>';
             }
         }
 
