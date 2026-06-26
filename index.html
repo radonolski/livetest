@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCOREBOARD AND STATS</title>
+    <title>TEST LIGA SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -334,7 +334,7 @@
 
         // --- TWITCH CHAT INTEGRATION ---
         // Nur Broadcaster, Mods und VIPs können !livestats auslösen (15s Cooldown)
-        const TWITCH_CHANNEL = 'radonolski';
+        const TWITCH_CHANNEL = 'kayzahr';
         const CHAT_COOLDOWN_MS = 15000;
         let lastChatTrigger = 0;
 
@@ -398,7 +398,7 @@
         // --- API ABFRAGEN ---
         async function fetchLiveScore() {
             try {
-                const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard');
+                const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/npl/scoreboard');
                 const data = await response.json();
                 
                 if(data.events && data.events.length > 0) {
@@ -482,7 +482,7 @@
         // --- STATISTIKEN AUSLESEN ---
         async function fetchMatchStats(matchId) {
             try {
-                const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary?event=${matchId}`);
+                const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/npl/summary?event=${matchId}`);
                 const data = await res.json();
                 
                 if (data.boxscore && data.boxscore.teams) {
