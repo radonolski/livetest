@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST LIGA SCOREBOARD AND STATS</title>
+    <title> LIGA SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -212,12 +212,16 @@
         .yellow-card { color: #f1c40f; }
         .red-card { color: #e74c3c; }
         .no-stats {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: #90f3c5;
-            font-size: 14px;
-            padding: 5px 0;
+            font-size: 15px;
+            font-weight: bold;
             letter-spacing: 1px;
             text-transform: uppercase;
+            padding: 25px 20px; /* Macht den Balken höher, damit er unter dem Scoreboard hervorschaut */
+            min-height: 30px; /* Garantiert eine Mindesthöhe */
         }
     </style>
 </head>
