@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHAT SCOREBOARD AND STATS</title>
+    <title>SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 10px;
             background-color: transparent; 
             font-family: 'Arial Black', Impact, sans-serif;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding-top: 50px;
+            padding-top: 20px;
             flex-direction: column;
         }
 
@@ -53,7 +53,6 @@
         .scoreboard-side.left .team-container { margin-left: 20px; margin-right: 20px; }
         .scoreboard-side.right .team-container { margin-left: 20px; }
 
-        /* LINKE LINIE */
         .scoreboard-side.left::after {
             content: '';
             position: absolute;
@@ -66,7 +65,6 @@
             z-index: 1;
         }
 
-        /* RECHTE LINIE */
         .scoreboard-side.right::after {
             content: '';
             position: absolute;
@@ -162,13 +160,11 @@
         
         .center-logo span { font-size: 24px; line-height: 1; }
 
-        /* --- STATISTIK PANEL CSS --- */
         .stats-panel {
             position: absolute;
             top: 60px; 
             left: 22%;
-            
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 1);
             color: #ffffff;
             width: 70%; 
             border-radius: 0 0 20px 20px;
@@ -176,7 +172,6 @@
             font-family: 'Arial', sans-serif; 
             font-weight: bold;
             font-size: 16px;
-            
             max-height: 0;
             opacity: 0;
             overflow: hidden;
@@ -309,7 +304,6 @@
             const banner = document.getElementById('goal-banner');
             if (banner) {
                 banner.classList.add('active');
-                
                 setTimeout(() => {
                     banner.classList.remove('active');
                     setTimeout(() => { isAnimating = false; }, 600); 
@@ -326,7 +320,6 @@
 
         function toggleStatsPanel() {
             const panel = document.getElementById('stats-panel');
-            
             if (panel.classList.contains('active')) {
                 panel.classList.remove('active');
                 clearTimeout(statsTimer);
@@ -340,15 +333,30 @@
         }
 
         // --- TWITCH CHAT INTEGRATION ---
-        // Verbindet anonym (kein API-Key nötig) mit dem Twitch IRC WebSocket
-        // und lauscht auf "!livestats" im Chat von radonolski
+        // Nur Broadcaster, Mods und VIPs können !livestats auslösen (15s Cooldown)
         const TWITCH_CHANNEL = 'radonolski';
+        const CHAT_COOLDOWN_MS = 15000;
+        let lastChatTrigger = 0;
+
+        function hasPermission(rawMessage) {
+            const tagsMatch = rawMessage.match(/^@(\S+)/);
+            if (!tagsMatch) return false;
+            const tags = tagsMatch[1];
+            const badgesMatch = tags.match(/(?:^|;)badges=([^;]*)/);
+            if (!badgesMatch) return false;
+            const badges = badgesMatch[1];
+            return (
+                badges.includes('broadcaster') ||
+                badges.includes('moderator') ||
+                badges.includes('vip')
+            );
+        }
 
         function connectTwitchChat() {
             const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
             ws.onopen = function() {
-                // Anonymer Login (justinfan = Twitch-Standard für anonyme Leser)
+                ws.send('CAP REQ :twitch.tv/tags');
                 ws.send('PASS oauth:no_token_needed');
                 ws.send('NICK justinfan' + Math.floor(Math.random() * 999999));
                 ws.send('JOIN #' + TWITCH_CHANNEL);
@@ -356,21 +364,20 @@
 
             ws.onmessage = function(event) {
                 const raw = event.data;
-
-                // Twitch sendet regelmäßig PING – darauf mit PONG antworten, damit die Verbindung bleibt
                 if (raw.startsWith('PING')) {
                     ws.send('PONG :tmi.twitch.tv');
                     return;
                 }
-
-                // Chat-Nachrichten parsen: Format ist z.B.
-                // :username!username@username.tmi.twitch.tv PRIVMSG #channel :nachricht
                 if (raw.includes('PRIVMSG')) {
                     const msgMatch = raw.match(/PRIVMSG #\S+ :(.+)/);
                     if (msgMatch) {
                         const message = msgMatch[1].trim().toLowerCase();
-                        if (message === '!livestats') {
-                            toggleStatsPanel();
+                        if (message === '!livestats' && hasPermission(raw)) {
+                            const now = Date.now();
+                            if (now - lastChatTrigger >= CHAT_COOLDOWN_MS) {
+                                lastChatTrigger = now;
+                                toggleStatsPanel();
+                            }
                         }
                     }
                 }
@@ -381,7 +388,6 @@
             };
 
             ws.onclose = function() {
-                // Bei Verbindungsabbruch nach 5 Sekunden neu verbinden
                 console.warn('Twitch WebSocket getrennt – versuche erneute Verbindung in 5s...');
                 setTimeout(connectTwitchChat, 5000);
             };
@@ -417,7 +423,6 @@
                     const currentScore1 = parseInt(homeTeam.score) || 0;
                     const currentScore2 = parseInt(awayTeam.score) || 0;
 
-                    // Tor-Erkennung
                     if (lastScore1 !== null && lastScore2 !== null) {
                         if (currentScore1 > lastScore1 || currentScore2 > lastScore2) {
                             triggerGoalAnimation();
@@ -427,13 +432,11 @@
                     lastScore1 = currentScore1;
                     lastScore2 = currentScore2;
 
-                    // Zeit-Text ermitteln
                     let timeText = "--:--";
                     if (status.type.state === "pre") {
                         const kickoff = new Date(match.date);
                         const now = new Date();
                         const diffMs = kickoff - now;
-
                         if (diffMs > 0) {
                             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                             const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -467,7 +470,6 @@
                     document.getElementById('team2-score').innerText = currentScore2;
                     document.getElementById('team2-flag').src = awayTeam.team.logo;
 
-                    // Im Hintergrund die erweiterten Match-Details abfragen
                     if (status.type.state !== "pre") {
                         fetchMatchStats(match.id);
                     }
@@ -495,25 +497,18 @@
 
                     document.getElementById('stat-poss-1').innerText = getStat(homeStatsData, 'possessionPct') + '%';
                     document.getElementById('stat-poss-2').innerText = getStat(awayStatsData, 'possessionPct') + '%';
-
                     document.getElementById('stat-shots-1').innerText = getStat(homeStatsData, 'totalShots');
                     document.getElementById('stat-shots-2').innerText = getStat(awayStatsData, 'totalShots');
-
                     document.getElementById('stat-sog-1').innerText = getStat(homeStatsData, 'shotsOnTarget');
                     document.getElementById('stat-sog-2').innerText = getStat(awayStatsData, 'shotsOnTarget');
-
                     document.getElementById('stat-corners-1').innerText = getStat(homeStatsData, 'wonCorners');
                     document.getElementById('stat-corners-2').innerText = getStat(awayStatsData, 'wonCorners');
-
                     document.getElementById('stat-freekicks-1').innerText = getStat(homeStatsData, 'freeKicks');
                     document.getElementById('stat-freekicks-2').innerText = getStat(awayStatsData, 'freeKicks');
-
                     document.getElementById('stat-fouls-1').innerText = getStat(homeStatsData, 'foulsCommitted');
                     document.getElementById('stat-fouls-2').innerText = getStat(awayStatsData, 'foulsCommitted');
-
                     document.getElementById('stat-yellow-1').innerText = getStat(homeStatsData, 'yellowCards');
                     document.getElementById('stat-yellow-2').innerText = getStat(awayStatsData, 'yellowCards');
-
                     document.getElementById('stat-red-1').innerText = getStat(homeStatsData, 'redCards');
                     document.getElementById('stat-red-2').innerText = getStat(awayStatsData, 'redCards');
                 }
