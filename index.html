@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCOREBOARD AND STATS</title>
+    <title>TEST SCOREBOARD AND STATS</title>
     <style>
         body {
             margin: 0;
@@ -32,7 +32,7 @@
             height: 60px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             position: relative;
-            z-index: 10; 
+            /* z-index: 10; wurde hier entfernt, damit das Panel sich dahinter schieben kann */
         }
 
         .scoreboard-side {
@@ -57,7 +57,7 @@
             content: '';
             position: absolute;
             bottom: -3px;
-            left: 135px;
+            left: 135px; /* Überspringt die Uhrzeit für die Symmetrie */
             right: -25px; 
             height: 3px;
             background: linear-gradient(90deg, rgba(235, 65, 65, 0) 0%, rgba(235, 65, 65, 1) 25%, rgba(115, 245, 165, 1) 100%);
@@ -130,7 +130,7 @@
 
         .score-box {
             background-color: #90f3c5;
-            color: #000;
+            color: #00;
             font-size: 32px;
             padding: 5px 15px;
             z-index: 2;
@@ -141,6 +141,13 @@
 
         #team1-score { border-radius: 12px 0 0 12px; }
         #team2-score { border-radius: 0 12px 12px 0; }
+
+        /* Neuer Wrapper für Logo und Stats-Panel */
+        .logo-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
 
         .center-logo {
             background-color: #ffffff;
@@ -166,7 +173,7 @@
             left: 50%;
             background-color: rgba(0, 0, 0, 1);
             color: #ffffff;
-            width: 70%; 
+            width: 380px; /* Feste Breite */
             border-radius: 0 0 20px 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             font-family: 'Arial', sans-serif; 
@@ -176,8 +183,8 @@
             opacity: 0;
             overflow: hidden;
             transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            transform: translate(-50%, -20px);
-            z-index: 5;
+            transform: translate(-50%, -20px); /* Zentriert auf X-Achse */
+            z-index: -1; /* Versteckt sich hinter dem Scoreboard */
         }
 
         .stats-panel.active {
@@ -229,7 +236,53 @@
                 <div class="score-box" id="team1-score">0</div>
             </div>
 
-            <div class="center-logo"><span>🏆</span>FIFA</div>
+            <!-- Wrapper verheiratet das Logo mit dem Stats-Panel -->
+            <div class="logo-wrapper">
+                <div class="center-logo"><span>🏆</span>FIFA</div>
+
+                <div class="stats-panel" id="stats-panel">
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-poss-1">0%</span>
+                        <span class="stat-label">Ballbesitz</span>
+                        <span class="stat-value" id="stat-poss-2">0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-shots-1">0</span>
+                        <span class="stat-label">Schüsse</span>
+                        <span class="stat-value" id="stat-shots-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-sog-1">0</span>
+                        <span class="stat-label">Schüsse aufs Tor</span>
+                        <span class="stat-value" id="stat-sog-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-corners-1">0</span>
+                        <span class="stat-label">Eckbälle</span>
+                        <span class="stat-value" id="stat-corners-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-freekicks-1">0</span>
+                        <span class="stat-label">Freistöße</span>
+                        <span class="stat-value" id="stat-freekicks-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value" id="stat-fouls-1">0</span>
+                        <span class="stat-label">Fouls</span>
+                        <span class="stat-value" id="stat-fouls-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value yellow-card" id="stat-yellow-1">0</span>
+                        <span class="stat-label">Gelbe Karten</span>
+                        <span class="stat-value yellow-card" id="stat-yellow-2">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-value red-card" id="stat-red-1">0</span>
+                        <span class="stat-label">Rote Karten</span>
+                        <span class="stat-value red-card" id="stat-red-2">0</span>
+                    </div>
+                </div>
+            </div>
 
             <div class="scoreboard-side right">
                 <div class="score-box" id="team2-score">0</div>
@@ -239,55 +292,11 @@
                 </div>
             </div>
         </div>
-
-        <div class="stats-panel" id="stats-panel">
-            <div class="stat-row">
-                <span class="stat-value" id="stat-poss-1">0%</span>
-                <span class="stat-label">Ballbesitz</span>
-                <span class="stat-value" id="stat-poss-2">0%</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-shots-1">0</span>
-                <span class="stat-label">Schüsse</span>
-                <span class="stat-value" id="stat-shots-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-sog-1">0</span>
-                <span class="stat-label">Schüsse aufs Tor</span>
-                <span class="stat-value" id="stat-sog-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-corners-1">0</span>
-                <span class="stat-label">Eckbälle</span>
-                <span class="stat-value" id="stat-corners-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-freekicks-1">0</span>
-                <span class="stat-label">Freistöße</span>
-                <span class="stat-value" id="stat-freekicks-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value" id="stat-fouls-1">0</span>
-                <span class="stat-label">Fouls</span>
-                <span class="stat-value" id="stat-fouls-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value yellow-card" id="stat-yellow-1">0</span>
-                <span class="stat-label">Gelbe Karten</span>
-                <span class="stat-value yellow-card" id="stat-yellow-2">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-value red-card" id="stat-red-1">0</span>
-                <span class="stat-label">Rote Karten</span>
-                <span class="stat-value red-card" id="stat-red-2">0</span>
-            </div>
-        </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const targetTeam = urlParams.get('team') ? urlParams.get('team').toUpperCase() : null;
-        const targetLeague = urlParams.get('league') ? urlParams.get('league').toLowerCase() : 'all';
 
         let lastScore1 = null;
         let lastScore2 = null;
@@ -399,8 +408,7 @@
         // --- API ABFRAGEN ---
         async function fetchLiveScore() {
             try {
-                const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${targetLeague}/scoreboard`;
-                const response = await fetch(apiUrl);
+                const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard');
                 const data = await response.json();
                 
                 if(data.events && data.events.length > 0) {
