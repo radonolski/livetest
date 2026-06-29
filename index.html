@@ -297,6 +297,7 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const targetTeam = urlParams.get('team') ? urlParams.get('team').toUpperCase() : null;
+        const targetLeague = urlParams.get('league') ? urlParams.get('league').toLowerCase() : 'all';
 
         let lastScore1 = null;
         let lastScore2 = null;
@@ -408,7 +409,8 @@
         // --- API ABFRAGEN ---
         async function fetchLiveScore() {
             try {
-                const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard');
+                const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${targetLeague}/scoreboard`;
+                const response = await fetch(apiUrl);
                 const data = await response.json();
                 
                 if(data.events && data.events.length > 0) {
